@@ -35,6 +35,11 @@
     }
     #balance {
       font-size: 18px;
+      margin-bottom: 10px;
+    }
+    #devIDDisplay {
+      font-size: 14px;
+      color: #aaa;
       margin-bottom: 20px;
     }
     .category {
@@ -74,17 +79,6 @@
   </style>
 </head>
 <body>
-  <div id="devIDDisplay"></div>
-
-<script>
-  let deviceID = localStorage.getItem('deviceID');
-  if (!deviceID) {
-    deviceID = 'dev-' + Math.random().toString(36).substr(2);
-    localStorage.setItem('deviceID', deviceID);
-  }
-
-  document.getElementById('devIDDisplay').textContent = `Your Dev ID: ${deviceID}`;
-</script>
   <div id="sidebar">
     <div class="category"><h2>🎰 Slots</h2>
       <button class="game-button" onclick="launchGame('Classic Slots')">Classic Slots</button>
@@ -138,17 +132,26 @@
   <div id="main">
     <header>Welcome to No-Risk Casino</header>
     <div id="balance">Balance: $<span id="balanceAmount">0.00</span></div>
+    <div id="devIDDisplay"></div>
     <p>Select a game from the sidebar to begin.</p>
     <button id="adminBtn" onclick="window.location.href='admin.html'">🛠️ Admin Panel</button>
   </div>
 
   <script>
-    const userID = "nathan"; // Replace with dynamic logic if needed
+    const userID = "nathan";
     const balanceEl = document.getElementById('balanceAmount');
+    const devIDEl = document.getElementById('devIDDisplay');
     let balance = 0;
 
+    let deviceID = localStorage.getItem('deviceID');
+    if (!deviceID) {
+      deviceID = 'dev-' + Math.random().toString(36).substr(2);
+      localStorage.setItem('deviceID', deviceID);
+    }
+    devIDEl.textContent = `Your Dev ID: ${deviceID}`;
+
     function syncBalanceFromPublic() {
-      fetch("https://yourdomain.com/balances.json") // Replace with your actual URL
+      fetch("https://yourdomain.com/balances.json")
         .then(res => res.json())
         .then(data => {
           if (data[userID] !== undefined) {

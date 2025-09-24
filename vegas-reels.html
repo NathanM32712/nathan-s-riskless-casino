@@ -2,23 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Vegas Reels</title>
+  <title>Classic Slots</title>
   <style>
     body {
       margin: 0;
-      background: #000;
+      background: #111;
       font-family: sans-serif;
       color: #fff;
       text-align: center;
     }
     header {
       padding: 20px;
-      font-size: 30px;
+      font-size: 28px;
       font-weight: bold;
-      background: #111;
-      border-bottom: 2px solid rgb(30, 255, 0);
-      color: gold;
-      text-shadow: 0 0 10px rgb(30, 255, 0);
+      background: #222;
+      border-bottom: 2px solid gold;
     }
     #balance {
       font-size: 18px;
@@ -32,11 +30,11 @@
     .reel {
       width: 80px;
       height: 80px;
-      margin: 0 5px;
+      margin: 0 6px;
       overflow: hidden;
       border: 2px solid gold;
       border-radius: 10px;
-      background: #222;
+      background: #333;
       position: relative;
     }
     .strip {
@@ -49,7 +47,7 @@
     }
     @keyframes scroll {
       0% { top: 0; }
-      100% { top: -640px; }
+      100% { top: -480px; }
     }
     input {
       padding: 6px;
@@ -59,30 +57,26 @@
       font-size: 14px;
     }
     button {
-      background: rgb(30, 255, 0);
-      color: #000000;
+      background: gold;
+      color: #000;
       border: none;
       padding: 10px 20px;
       margin: 10px;
       border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 0 10px gold;
     }
     button:hover {
-      background: gold;
-      color: #000;
+      background: #fff000;
     }
     #result {
       font-size: 20px;
       margin-top: 20px;
-      color: lime;
-      text-shadow: 0 0 5px lime;
     }
   </style>
 </head>
 <body>
-  <header>🎰 Vegas Reels</header>
+  <header>🎰 Classic Slots</header>
   <div id="balance">Balance: $<span id="balanceAmount">1000</span></div>
   <div id="slot">
     <div class="reel"><div class="strip" id="strip1"></div></div>
@@ -97,15 +91,15 @@
   <div id="result"></div>
 
   <script>
-    let balance = parseInt(localStorage.getItem('slotsBalance')) || 1000;
+    let balance = parseFloat(localStorage.getItem('slotsBalance')) || 1000;
     const balanceEl = document.getElementById('balanceAmount');
     function updateBalanceDisplay() {
-      balanceEl.textContent = balance;
+      balanceEl.textContent = balance.toFixed(2);
       localStorage.setItem('slotsBalance', balance);
     }
     updateBalanceDisplay();
 
-    const symbols = ["🍒", "💎", "🔔", "🍋", "🍉", "7️⃣", "⭐", "🍇"];
+    const symbols = ["🍒", "🍍", "🍇", "🍉", "🍋", "7️⃣"];
     const strips = [
       document.getElementById("strip1"),
       document.getElementById("strip2"),
@@ -116,7 +110,7 @@
     const resultEl = document.getElementById("result");
 
     function spin() {
-      const betAmount = parseInt(document.getElementById("betAmount").value);
+      const betAmount = parseFloat(document.getElementById("betAmount").value);
       if (isNaN(betAmount) || betAmount <= 0) {
         alert("Enter a valid bet amount.");
         return;
@@ -134,31 +128,50 @@
 
       strips.forEach((strip, i) => {
         const spinSymbols = [];
-        for (let j = 0; j < 16; j++) {
+        for (let j = 0; j < 12; j++) {
           spinSymbols.push(symbols[Math.floor(Math.random() * symbols.length)]);
         }
         const finalSymbol = spinSymbols[spinSymbols.length - 1];
         outcome.push(finalSymbol);
         strip.innerHTML = spinSymbols.map(s => `<div>${s}</div>`).join("");
         strip.style.top = "0px";
-        strip.style.animation = "scroll 0.6s ease-in-out";
+        strip.style.animation = "scroll 0.5s ease-in-out";
         setTimeout(() => {
           strip.style.animation = "none";
           strip.innerHTML = `<div>${finalSymbol}</div>`;
-        }, 600 + i * 100);
+        }, 500 + i * 100);
       });
 
       setTimeout(() => {
-        const allSame = outcome.every(s => s === outcome[0]);
-        if (allSame) {
-          const payout = betAmount * 20;
-          balance += payout;
-          updateBalanceDisplay();
-          resultEl.textContent = `🎉 JACKPOT! ${outcome.join(" ")} — You won $${payout}`;
+        let streak = 1;
+        for (let i = 1; i < outcome.length; i++) {
+          if (outcome[i] === outcome[i - 1]) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+
+        let payout = 0;
+        if (streak === 5) {
+          payout = betAmount * 10;
+          resultEl.textContent = `🎉 5 Match! ${outcome.join(" ")} — You won $${payout}`;
+        } else if (streak === 4) {
+          payout = betAmount * 5;
+          resultEl.textContent = `🔥 4 Match! ${outcome.join(" ")} — You won $${payout}`;
+        } else if (streak === 3) {
+          payout = betAmount * 3;
+          resultEl.textContent = `✨ 3 Match! ${outcome.join(" ")} — You won $${payout}`;
+        } else if (streak === 2) {
+          payout = betAmount * 1.5;
+          resultEl.textContent = `🍒 2 Match! ${outcome.join(" ")} — You won $${payout.toFixed(2)}`;
         } else {
           resultEl.textContent = `❌ No match. Try again!`;
         }
-      }, 1200);
+
+        balance += payout;
+        updateBalanceDisplay();
+      }, 1000);
     }
 
     function goBack() {

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Fruit Frenzy</title>
+  <title>Classic Slots</title>
   <style>
     body {
       margin: 0;
@@ -76,7 +76,7 @@
   </style>
 </head>
 <body>
-  <header>🎰 Fruit Frenzy</header>
+  <header>🎰 Classic Slots</header>
   <div id="balance">Balance: $<span id="balanceAmount">1000</span></div>
   <div id="slot">
     <div class="reel"><div class="strip" id="strip1"></div></div>
@@ -97,7 +97,7 @@
     }
     updateBalanceDisplay();
 
-    const symbols = ["🍒", "🍎", "🍊", "🍋", "🍉", "🍌"];
+    const symbols = ["🍒", "🍓", "🍍", "🍋", "🍉", "🍇"];
     const strips = [document.getElementById("strip1"), document.getElementById("strip2"), document.getElementById("strip3")];
     const resultEl = document.getElementById("result");
 
@@ -135,14 +135,21 @@
       });
 
       setTimeout(() => {
-        if (outcome[0] === outcome[1] && outcome[1] === outcome[2]) {
-          const payout = betAmount * 10;
-          balance += payout;
-          updateBalanceDisplay();
+        const [a, b, c] = outcome;
+        let payout = 0;
+
+        if (a === b && b === c) {
+          payout = betAmount * 10;
           resultEl.textContent = `🎉 Jackpot! ${outcome.join(" ")} — You won $${payout}`;
+        } else if (a === b || b === c || a === c) {
+          payout = betAmount * 5;
+          resultEl.textContent = `✨ Double Match! ${outcome.join(" ")} — You won $${payout}`;
         } else {
           resultEl.textContent = `❌ No match. Try again!`;
         }
+
+        balance += payout;
+        updateBalanceDisplay();
       }, 1000);
     }
 

@@ -135,14 +135,21 @@
       });
 
       setTimeout(() => {
-        if (outcome[0] === outcome[1] && outcome[1] === outcome[2]) {
-          const payout = betAmount * 10;
-          balance += payout;
-          updateBalanceDisplay();
+        const [a, b, c] = outcome;
+        let payout = 0;
+
+        if (a === b && b === c) {
+          payout = betAmount * 10;
           resultEl.textContent = `🎉 Jackpot! ${outcome.join(" ")} — You won $${payout}`;
+        } else if (a === b || b === c || a === c) {
+          payout = betAmount * 5;
+          resultEl.textContent = `✨ Double Match! ${outcome.join(" ")} — You won $${payout}`;
         } else {
           resultEl.textContent = `❌ No match. Try again!`;
         }
+
+        balance += payout;
+        updateBalanceDisplay();
       }, 1000);
     }
 

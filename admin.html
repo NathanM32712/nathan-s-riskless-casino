@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    input, button {
+      font-size: 1em;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 6px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #panel {
+      display: none;
+      margin-top: 30px;
+    }
+    .section {
+      margin-bottom: 30px;
+      border: 2px solid #0f0;
+      padding: 20px;
+      border-radius: 10px;
+      background: #1e1e1e;
+      max-width: 400px;
+      margin: auto;
+    }
+    .control {
+      background: #0f0;
+      color: #000;
+    }
+    .removeBtn {
+      background: #f00;
+      color: #fff;
+      margin: 5px;
+    }
+    #backBtn {
+      background: #f59e0b;
+      color: #000;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛠️ Admin Panel</h1>
+
+  <div id="auth">
+    <input id="passwordInput" placeholder="Enter password" />
+    <button onclick="unlock()">Unlock</button>
+  </div>
+
+  <div id="panel">
+    <div class="section">
+      <h2>💰 Set Your Own Balance</h2>
+      <input id="selfAmount" type="number" min="0" placeholder="Amount" />
+      <button class="control" onclick="setSelfBalance()">Set</button>
+    </div>
+
+    <div class="section">
+      <h2>📥 Send Self Money</h2>
+      <input id="selfSendAmount" type="number" min="0" placeholder="Amount to add" />
+      <button class="control" onclick="sendSelfMoney()">Send</button>
+    </div>
+
+    <div class="section">
+      <h2>📤 Send Money to Others</h2>
+      <input id="targetID" placeholder="Receiver ID" />
+      <input id="targetAmount" type="number" min="0" placeholder="Amount to send" />
+      <button class="control" onclick="sendToOther()">Send</button>
+    </div>
+
+    <div class="section" id="removeSection" style="display:none;">
+      <h2>🧨 Remove Approved Admins</h2>
+      <div id="adminList"></div>
+    </div>
+
+    <button id="backBtn" onclick="window.location.href='index.html'">Back to Casino</button>
+  </div>
+
+  <script>
+    const PERMANENT_ADMINS = ['dev-epbg5mcqxzp', 'dev-zida27c5pjb'];
+    const PASSWORD = "Nathan's-super-secret-sigma-password";
+
+    let deviceID = localStorage.getItem('deviceID');
+    if (!deviceID) {
+      deviceID = 'dev-' + Math.random().toString(36).substr(2);
+      localStorage.setItem('deviceID', deviceID);
+    }
+
+    const approvedAdmins = JSON.parse(localStorage.getItem('adminList') || '[]');
+
+    if (PERMANENT_ADMINS.includes(deviceID) || approvedAdmins.includes(deviceID)) {
+      showPanel();
+    }
+
+    function unlock() {
+      const input = document.getElementById('passwordInput').value.trim();
+      if (input === PASSWORD) {
+        const updatedList = [...new Set([...approvedAdmins, deviceID])];
+        localStorage.setItem('adminList', JSON.stringify(updatedList));
+        showPanel();
+        alert("✅ Access granted.");
+      } else {
+        alert("❌ Incorrect password.");
+      }
+    }
+
+    function showPanel() {
+      document.getElementById('auth').style.display = 'none';
+      document.getElementById('panel').style.display = 'block';
+      if (PERMANENT_ADMINS.includes(deviceID)) renderAdminList();
+    }
+
+    function setSelfBalance() {
+      const amount = parseFloat(document.getElementById('selfAmount').value);
+      if (isNaN(amount) || amount < 0) {
+        alert("❌ Invalid amount.");
+        return;
+      }
+      localStorage.setItem('slotsBalance', amount.toString());
+      alert(`✅ Your balance set to $${amount.toFixed(2)}.`);
+    }
+
+    function sendSelfMoney() {
+      const amount = parseFloat(document.getElementById('selfSendAmount').value);
+      if (isNaN(amount) || amount <= 0) {
+        alert("❌ Invalid amount.");
+        return;
+      }
+      const current = parseFloat(localStorage.getItem('slotsBalance')) || 0;
+      const updated = current + amount;
+      localStorage.setItem('slotsBalance', updated.toString());
+      alert(`✅ Added $${amount.toFixed(2)} to your balance. New total: $${updated.toFixed(2)}.`);
+    }
+
+    function sendToOther() {
+      const id = document.getElementById('targetID').value.trim();
+      const amount = parseFloat(document.getElementById('targetAmount').value);
+      if (!id || isNaN(amount) || amount <= 0) {
+        alert("❌ Invalid input.");
+        return;
+      }
+      const balances = JSON.parse(localStorage.getItem('publicBalances') || '{}');
+      balances[id] = (balances[id] || 0) + amount;
+      localStorage.setItem('publicBalances', JSON.stringify(balances));
+      alert(`✅ Sent $${amount.toFixed(2)} to ${id}.`);
+    }
+
+    function renderAdminList() {
+      const list = JSON.parse(localStorage.getItem('adminList') || '[]');
+      const container = document.getElementById('adminList');
+      container.innerHTML = "";
+      const removable = list.filter(id => !PERMANENT_ADMINS.includes(id));
+      if (removable.length === 0) {
+        container.innerHTML = "<p>No removable admins.</p>";
+      } else {
+        removable.forEach(id => {
+          const btn = document.createElement('button');
+          btn.className = 'removeBtn';
+          btn.textContent = `Remove ${id}`;
+          btn.onclick = () => removeAdmin(id);
+          container.appendChild(btn);
+        });
+      }
+      document.getElementById('removeSection').style.display = 'block';
+    }
+
+    function removeAdmin(id) {
+      const list = JSON.parse(localStorage.getItem('adminList') || '[]');
+      const updated = list.filter(x => x !== id);
+      localStorage.setItem('adminList', JSON.stringify(updated));
+      alert(`❌ Removed ${id}`);
+      renderAdminList();
+    }
+  </script>
+</body>
+</html>

@@ -74,6 +74,17 @@
   </style>
 </head>
 <body>
+  <div id="devIDDisplay"></div>
+
+<script>
+  let deviceID = localStorage.getItem('deviceID');
+  if (!deviceID) {
+    deviceID = 'dev-' + Math.random().toString(36).substr(2);
+    localStorage.setItem('deviceID', deviceID);
+  }
+
+  document.getElementById('devIDDisplay').textContent = `Your Dev ID: ${deviceID}`;
+</script>
   <div id="sidebar">
     <div class="category"><h2>🎰 Slots</h2>
       <button class="game-button" onclick="launchGame('Classic Slots')">Classic Slots</button>

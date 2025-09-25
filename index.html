@@ -40,7 +40,7 @@
     #devIDDisplay {
       font-size: 14px;
       color: #aaa;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
     .category {
       margin-bottom: 20px;
@@ -147,7 +147,12 @@
     if (!deviceID) {
       deviceID = 'dev-' + Math.random().toString(36).substr(2);
       localStorage.setItem('deviceID', deviceID);
+
+      let playerCount = parseInt(localStorage.getItem('playerCount')) || 0;
+      playerCount++;
+      localStorage.setItem('playerCount', playerCount);
     }
+
     devIDEl.textContent = `Your Dev ID: ${deviceID}`;
 
     function syncBalanceFromPublic() {

@@ -55,6 +55,7 @@
   <div id="auth">
     <input id="passwordInput" placeholder="Enter password" />
     <button onclick="unlock()">Unlock</button>
+    <div id="devIDDisplay"></div>
   </div>
 
   <div id="panel">
@@ -82,18 +83,29 @@
       <div id="adminList"></div>
     </div>
 
+    <div class="section" id="playerCountSection" style="display:none;">
+      <h2>👥 Total Players</h2>
+      <div id="playerCountDisplay"></div>
+    </div>
+
     <button id="backBtn" onclick="window.location.href='index.html'">Back to Casino</button>
   </div>
 
   <script>
-    const PERMANENT_ADMINS = ['dev-epbg5mcqxzp', 'dev-zida27c5pjb'];
     const PASSWORD = "Nathan's-super-secret-sigma-password";
+    const PERMANENT_ADMINS = ['dev-epbg5mcqxzp', 'dev-zida27c5pjb'];
 
     let deviceID = localStorage.getItem('deviceID');
     if (!deviceID) {
       deviceID = 'dev-' + Math.random().toString(36).substr(2);
       localStorage.setItem('deviceID', deviceID);
+
+      let playerCount = parseInt(localStorage.getItem('playerCount')) || 0;
+      playerCount++;
+      localStorage.setItem('playerCount', playerCount);
     }
+
+    document.getElementById('devIDDisplay').textContent = `Your Dev ID: ${deviceID}`;
 
     const approvedAdmins = JSON.parse(localStorage.getItem('adminList') || '[]');
 
@@ -116,7 +128,37 @@
     function showPanel() {
       document.getElementById('auth').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
-      if (PERMANENT_ADMINS.includes(deviceID)) renderAdminList();
+
+      if (PERMANENT_ADMINS.includes(deviceID)) {
+        renderAdminList();
+        renderPlayerCount();
+      }
+    }
+
+    function renderPlayerCount() {
+      const count = localStorage.getItem('playerCount') || '0';
+      document.getElementById('playerCountDisplay').textContent = `${count} unique players`;
+      document.getElementById('playerCountSection').style.display = 'block';
+    }
+
+    function renderAdminList() {
+      const container = document.getElementById('adminList');
+      container.innerHTML = '';
+      approvedAdmins.forEach(id => {
+        const div = document.createElement('div');
+        div.textContent = id;
+        const btn = document.createElement('button');
+        btn.textContent = 'Remove';
+        btn.className = 'removeBtn';
+        btn.onclick = () => {
+          const updated = approvedAdmins.filter(x => x !== id);
+          localStorage.setItem('adminList', JSON.stringify(updated));
+          location.reload();
+        };
+        div.appendChild(btn);
+        container.appendChild(div);
+      });
+      document.getElementById('removeSection').style.display = 'block';
     }
 
     function setSelfBalance() {
@@ -138,47 +180,20 @@
       const current = parseFloat(localStorage.getItem('slotsBalance')) || 0;
       const updated = current + amount;
       localStorage.setItem('slotsBalance', updated.toString());
-      alert(`✅ Added $${amount.toFixed(2)} to your balance. New total: $${updated.toFixed(2)}.`);
+      alert(`✅ Added $${amount.toFixed(2)} to your balance.`);
     }
 
     function sendToOther() {
-      const id = document.getElementById('targetID').value.trim();
+      const target = document.getElementById('targetID').value.trim();
       const amount = parseFloat(document.getElementById('targetAmount').value);
-      if (!id || isNaN(amount) || amount <= 0) {
-        alert("❌ Invalid input.");
+      if (!target || isNaN(amount) || amount <= 0) {
+        alert("❌ Invalid target or amount.");
         return;
       }
       const balances = JSON.parse(localStorage.getItem('publicBalances') || '{}');
-      balances[id] = (balances[id] || 0) + amount;
+      balances[target] = (balances[target] || 0) + amount;
       localStorage.setItem('publicBalances', JSON.stringify(balances));
-      alert(`✅ Sent $${amount.toFixed(2)} to ${id}.`);
-    }
-
-    function renderAdminList() {
-      const list = JSON.parse(localStorage.getItem('adminList') || '[]');
-      const container = document.getElementById('adminList');
-      container.innerHTML = "";
-      const removable = list.filter(id => !PERMANENT_ADMINS.includes(id));
-      if (removable.length === 0) {
-        container.innerHTML = "<p>No removable admins.</p>";
-      } else {
-        removable.forEach(id => {
-          const btn = document.createElement('button');
-          btn.className = 'removeBtn';
-          btn.textContent = `Remove ${id}`;
-          btn.onclick = () => removeAdmin(id);
-          container.appendChild(btn);
-        });
-      }
-      document.getElementById('removeSection').style.display = 'block';
-    }
-
-    function removeAdmin(id) {
-      const list = JSON.parse(localStorage.getItem('adminList') || '[]');
-      const updated = list.filter(x => x !== id);
-      localStorage.setItem('adminList', JSON.stringify(updated));
-      alert(`❌ Removed ${id}`);
-      renderAdminList();
+      alert(`✅ Sent $${amount.toFixed(2)} to ${target}.`);
     }
   </script>
 </body>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Not Found</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 30px;
+      border: none;
+      border-radius: 6px;
+      background: #0f0;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>😢 Sorry!</h1>
+  <p id="message">The game you're trying to play isn't working or isn't here yet.</p>
+  <button onclick="window.location.href='index.html'">🔙 Back to Casino</button>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const game = params.get('game');
+    if (game) {
+      document.getElementById('message').textContent = `The game "${game}" isn't working or isn't here yet.`;
+    }
+  </script>
+</body>
+</html>

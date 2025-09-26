@@ -161,32 +161,27 @@
       balanceEl.textContent = getBalance().toFixed(2);
     }
 
+    const knownGames = [
+      'classic-slots.html', 'fruit-frenzy.html', 'vegas-reels.html',
+      'blackjack.html', 'baccarat.html',
+      'texas-holdem.html', 'omaha.html', 'five-card-draw.html',
+      'three-card-poker.html', 'video-poker.html',
+      'risk-classic.html', 'risk-blitz.html', 'risk-royale.html',
+      'risk-showdown.html', 'avia-masters.html',
+      'mines-3x3.html', 'mines-5x5.html', 'mines-pro.html',
+      'limbo-classic.html', 'limbo-turbo.html', 'limbo-infinite.html',
+      'plinko-classic.html', 'plinko-extreme.html', 'plinko-chaos.html',
+      'crash.html', 'moonshot.html',
+      'coin-flip.html', 'dice-duel.html', 'lucky-wheel.html'
+    ];
+
     function launchGame(name) {
       const fileName = name.toLowerCase().replace(/ /g, '-') + '.html';
-      fetch(fileName)
-        .then(res => {
-          if (res.ok) {
-            window.open(fileName, '_blank');
-            window.close();
-          } else {
-            const html = `
-              <html>
-              <head><title>Game Not Found</title></head>
-              <body style="background:#111;color:#fff;font-family:sans-serif;text-align:center;padding:40px;">
-                <h1>😢 Sorry!</h1>
-                <p>If you see this, the game you’re trying to play isn’t working or isn’t here yet.</p>
-                <button onclick="window.location.href='index.html'" style="padding:10px 20px;font-size:16px;margin-top:20px;">🔙 Back to Casino</button>
-              </body>
-              </html>
-            `;
-            const errorTab = window.open();
-            errorTab.document.write(html);
-            errorTab.document.close();
-          }
-        });
+      if (knownGames.includes(fileName)) {
+        window.open(fileName, '_blank');
+      } else {
+        window.location.href = `error.html?game=${encodeURIComponent(name)}`;
+      }
     }
 
-    updateBalanceDisplay();
-  </script>
-</body>
-</html>
+   

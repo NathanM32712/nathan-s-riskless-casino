@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <title>Plinko Extreme</title>
   <style>
-    body { font-family: sans-serif; text-align: center; background: #000; color: #eee; }
-    canvas { background: #111; display: block; margin: 20px auto; border: 2px solid #f00; }
+    body { font-family: sans-serif; text-align: center; background: #111; color: #eee; }
+    canvas { background: #222; display: block; margin: 20px auto; border: 2px solid #555; }
     input, button { font-size: 1.2em; margin: 10px; padding: 5px 10px; }
     #balance { margin-top: 10px; font-size: 1.2em; }
   </style>
 </head>
 <body>
-  <h1>🔥 Plinko Extreme</h1>
+  <h1>💥 Plinko Extreme</h1>
   <canvas id="plinkoCanvas" width="800" height="600"></canvas>
   <div>
     <input id="betInput" type="number" placeholder="Enter bet" />
@@ -23,17 +23,17 @@
   <script>
     const canvas = document.getElementById('plinkoCanvas');
     const ctx = canvas.getContext('2d');
-    const SLOT_COUNT = 11;
+    const SLOT_COUNT = 13;
     const BALL_R = 10;
-    const gravity = 0.3;
+    const gravity = 0.25;
     const pegRows = 14;
     const pegSpacing = 40;
     const pegs = [];
     let balls = [];
 
-    const BALANCE_KEY = 'casino_balance';
+    const BALANCE_KEY = 'slotsBalance';
     function getBalance() {
-      return parseFloat(localStorage.getItem(BALANCE_KEY) || '1000');
+      return parseFloat(localStorage.getItem(BALANCE_KEY)) || 1000;
     }
     function updateBalance(amount) {
       const newBalance = getBalance() + amount;
@@ -44,12 +44,12 @@
     const MULTIPLIERS = Array.from({ length: SLOT_COUNT }, (_, i) => {
       const center = (SLOT_COUNT - 1) / 2;
       const distance = Math.abs(i - center);
-      return parseFloat((0.1 + (distance / center) * (20 - 0.1)).toFixed(1));
+      return parseFloat((0.2 + (distance / center) * (20 - 0.2)).toFixed(1));
     });
 
     function setupPegs() {
       pegs.length = 0;
-      const baseY = 60;
+      const baseY = 40; // shifted higher
       for (let row = 1; row < pegRows; row++) {
         for (let col = 0; col <= row; col++) {
           const x = canvas.width / 2 + (col - row / 2) * pegSpacing;
@@ -65,7 +65,7 @@
 
       for (let i = 0; i < SLOT_COUNT; i++) {
         const x = startX + i * pegSpacing;
-        ctx.fillStyle = '#400';
+        ctx.fillStyle = '#333';
         ctx.fillRect(x - 15, canvas.height - 40, 30, 30);
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
@@ -75,7 +75,7 @@
 
         if (i < SLOT_COUNT - 1) {
           const dividerX = x + pegSpacing / 2;
-          ctx.strokeStyle = '#f00';
+          ctx.strokeStyle = '#666';
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(dividerX, canvas.height - 40);
@@ -87,14 +87,14 @@
       pegs.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = '#f00';
+        ctx.fillStyle = '#888';
         ctx.fill();
       });
 
       balls.forEach(ball => {
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
-        ctx.fillStyle = '#ff0';
+        ctx.fillStyle = '#f00';
         ctx.fill();
       });
     }
@@ -103,7 +103,7 @@
       const currentBalance = getBalance();
       if (bet > 0 && bet <= currentBalance) {
         updateBalance(-bet);
-        const offset = Math.floor(Math.random() * 9) + 1;
+        const offset = Math.floor(Math.random() * 11) + 1;
         balls.push({
           x: canvas.width / 2 + (Math.random() < 0.5 ? -offset : offset),
           y: 0,

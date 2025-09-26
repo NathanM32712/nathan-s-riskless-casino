@@ -33,7 +33,7 @@
 </head>
 <body>
   <h1>🎯 Limbo</h1>
-  <div>Balance: $<span id="balanceDisplay">0</span></div>
+  <div>Balance: $<span id="balanceDisplay">0.00</span></div>
 
   <input id="betInput" type="number" min="1" placeholder="Bet amount" />
   <input id="multiplierInput" type="number" min="1.01" step="0.01" placeholder="Target multiplier" />
@@ -43,19 +43,26 @@
   <button id="backBtn" onclick="goBack()">Back to Casino</button>
 
   <script>
-    let balance = parseFloat(localStorage.getItem('slotsBalance')) || 1000;
+    const BALANCE_KEY = 'slotsBalance';
     const balanceEl = document.getElementById('balanceDisplay');
     const resultEl = document.getElementById('result');
 
-    function updateBalanceDisplay() {
-      balanceEl.textContent = balance.toFixed(2);
-      localStorage.setItem('slotsBalance', balance.toString());
+    function getBalance() {
+      return parseFloat(localStorage.getItem(BALANCE_KEY)) || 1000;
     }
-    updateBalanceDisplay();
+
+    function setBalance(amount) {
+      localStorage.setItem(BALANCE_KEY, amount.toFixed(2));
+      balanceEl.textContent = amount.toFixed(2);
+    }
+
+    setBalance(getBalance());
 
     function play() {
       const bet = parseFloat(document.getElementById('betInput').value);
       const target = parseFloat(document.getElementById('multiplierInput').value);
+      let balance = getBalance();
+
       if (isNaN(bet) || isNaN(target) || bet <= 0 || target <= 1) {
         resultEl.textContent = "❌ Invalid bet or multiplier.";
         return;
@@ -65,8 +72,8 @@
         return;
       }
 
-      const raw = Math.random(); // 0–1
-      const crash = parseFloat((1 + Math.pow(raw, 3) * 99).toFixed(2)); // favors low values
+      const raw = Math.random();
+      const crash = parseFloat((1 + Math.pow(raw, 3) * 99).toFixed(2));
 
       if (crash >= target) {
         const win = bet * target;
@@ -76,7 +83,8 @@
         balance -= bet;
         resultEl.textContent = `💥 Crash: ${crash} — You lost $${bet.toFixed(2)}.`;
       }
-      updateBalanceDisplay();
+
+      setBalance(balance);
     }
 
     function goBack() {

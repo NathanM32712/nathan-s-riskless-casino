@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Plinko Remake</title>
+  <title>Plinko Classic</title>
   <style>
     body { font-family: sans-serif; text-align: center; background: #111; color: #eee; }
     canvas { background: #222; display: block; margin: 20px auto; border: 2px solid #555; }
@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <h1>🎯 Plinko</h1>
+  <h1>🪂 Plinko Classic</h1>
   <canvas id="plinkoCanvas" width="800" height="600"></canvas>
   <div>
     <input id="betInput" type="number" placeholder="Enter bet" />
@@ -31,9 +31,9 @@
     const pegs = [];
     let balls = [];
 
-    const BALANCE_KEY = 'casino_balance';
+    const BALANCE_KEY = 'slotsBalance';
     function getBalance() {
-      return parseFloat(localStorage.getItem(BALANCE_KEY) || '1000');
+      return parseFloat(localStorage.getItem(BALANCE_KEY)) || 1000;
     }
     function updateBalance(amount) {
       const newBalance = getBalance() + amount;

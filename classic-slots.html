@@ -89,7 +89,12 @@
   <div id="result"></div>
 
   <script>
-    let balance = parseInt(localStorage.getItem('slotsBalance')) || 1000;
+    let balance = parseInt(localStorage.getItem('slotsBalance'));
+    if (isNaN(balance) || balance < 0) {
+      balance = 1000;
+      localStorage.setItem('slotsBalance', balance);
+    }
+
     const balanceEl = document.getElementById('balanceAmount');
     function updateBalanceDisplay() {
       balanceEl.textContent = balance;
@@ -135,19 +140,26 @@
       });
 
       setTimeout(() => {
-        if (outcome[0] === outcome[1] && outcome[1] === outcome[2]) {
-          const payout = betAmount * 10;
-          balance += payout;
-          updateBalanceDisplay();
-          resultEl.textContent = `🎉 Jackpot! ${outcome.join(" ")} — You won $${payout}`;
+        const [a, b, c] = outcome;
+        let payout = 0;
+
+        if (a === b && b === c) {
+          payout = betAmount * 5;
+          resultEl.textContent = `🎉 Triple Match! ${outcome.join(" ")} — You won $${payout}`;
+        } else if (a === b || b === c || a === c) {
+          payout = betAmount * 2;
+          resultEl.textContent = `✨ Double Match! ${outcome.join(" ")} — You won $${payout}`;
         } else {
           resultEl.textContent = `❌ No match. Try again!`;
         }
+
+        balance += payout;
+        updateBalanceDisplay();
       }, 1000);
     }
 
     function goBack() {
-      window.open('index.html','_blank');
+      window.open('index.html', '_blank');
       window.close();
     }
   </script>

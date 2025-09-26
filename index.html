@@ -161,27 +161,13 @@
       balanceEl.textContent = getBalance().toFixed(2);
     }
 
-    const knownGames = [
-      'classic-slots.html', 'fruit-frenzy.html', 'vegas-reels.html',
-      'blackjack.html', 'baccarat.html',
-      'texas-holdem.html', 'omaha.html', 'five-card-draw.html',
-      'three-card-poker.html', 'video-poker.html',
-      'risk-classic.html', 'risk-blitz.html', 'risk-royale.html',
-      'risk-showdown.html', 'avia-masters.html',
-      'mines-3x3.html', 'mines-5x5.html', 'mines-pro.html',
-      'limbo-classic.html', 'limbo-turbo.html', 'limbo-infinite.html',
-      'plinko-classic.html', 'plinko-extreme.html', 'plinko-chaos.html',
-      'crash.html', 'moonshot.html',
-      'coin-flip.html', 'dice-duel.html', 'lucky-wheel.html'
-    ];
-
     function launchGame(name) {
       const fileName = name.toLowerCase().replace(/ /g, '-') + '.html';
-      if (knownGames.includes(fileName)) {
-        window.open(fileName, '_blank');
-      } else {
-        window.location.href = `error.html?game=${encodeURIComponent(name)}`;
-      }
+      window.open(fileName, '_blank');
+      window.close();
     }
 
-   
+    updateBalanceDisplay();
+  </script>
+</body>
+</html>

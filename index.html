@@ -2,230 +2,166 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Riskless Casino</title>
+  <title>Casino Launcher</title>
   <style>
     body {
-      margin: 0;
-      background: #000;
-      font-family: sans-serif;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      background-image: url('textures/gui/title/background/panorama_4.png');
-      background-size: cover;
-      background-position: center;
-    }
-
-    #header {
-      padding: 20px;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    #header-left {
-      flex: 1;
-    }
-
-    #header-right {
-      margin-left: 20px;
-    }
-
-    h1 {
-      margin: 0 0 10px 0;
-      font-size: 36px;
+      background: #111;
       color: #0cf;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 40px;
     }
-
-    #sidebar {
-      width: 300px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 30px 20px;
-      overflow-y: auto;
-      flex-shrink: 0;
+    h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
     }
-
-    .category {
+    #device-id-tag {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    #balance-tag {
+      font-size: 14px;
+      color: #888;
       margin-bottom: 30px;
     }
-
-    .category h2 {
-      font-size: 20px;
-      margin-bottom: 10px;
-      color: #0cf;
-    }
-
-    .game-button {
+    #admin-button {
       background: #222;
       color: #0cf;
-      padding: 10px 16px;
-      font-size: 16px;
       border: none;
       border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 14px;
       cursor: pointer;
-      margin-bottom: 8px;
-      width: 100%;
-      text-align: left;
-      transition: background 0.2s;
+      margin-bottom: 30px;
     }
-
-    .game-button:hover {
+    #admin-button:hover {
       background: #444;
     }
-
-    #id-input, #amount-input {
-      width: 40%;
-      padding: 8px;
-      margin-right: 10px;
+    .category {
+      margin-top: 30px;
     }
-
-    #send-button, #admin-button {
-      padding: 8px 12px;
-      margin-top: 10px;
+    .category h2 {
+      font-size: 28px;
+      border-bottom: 1px solid #0cf;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
     }
-
-    .layout {
-      display: flex;
-      flex: 1;
+    .game-list {
+      list-style: none;
+      padding: 0;
     }
-
-    .main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .game-list li {
+      margin: 6px 0;
+    }
+    .game-list a {
+      color: #0cf;
+      text-decoration: none;
+      font-size: 20px;
+    }
+    .game-list a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <div id="header">
-    <div id="header-left">
-      <h1>🎰 Welcome to Riskless Casino</h1>
-      <p><strong>Your Dev ID:</strong> <span id="dev-id"></span></p>
-      <p><strong>Balance:</strong> $<span id="currency">0</span></p>
-      <input id="id-input" placeholder="Send to DEV-ID" />
-      <input id="amount-input" placeholder="$money$" type="number" />
-      <button id="send-button" onclick="sendMoney()">$ Send $</button>
-    </div>
-    <div id="header-right">
-      <button id="admin-button" onclick="window.location.href='admin.html'">🛠 Admin Panel</button>
-    </div>
+  <h1>🎰 Welcome to the Casino Launcher</h1>
+  <div id="device-id-tag">Loading Device ID...</div>
+  <div id="balance-tag">
+    Balance: $<span id="balance">0</span><br>
+    Applied slotsbalance: $<span id="slots-cookie">0</span>
   </div>
-
-  <div class="layout">
-    <div id="sidebar"></div>
-    <div class="main"></div>
-  </div>
+  <button id="admin-button" onclick="location.href='admin.html'">🛠 Admin Panel</button>
+  <div id="games-container"></div>
 
   <script>
-    const currencyDisplay = document.getElementById("currency");
-    const devDisplay = document.getElementById("dev-id");
-    const idInput = document.getElementById("id-input");
-    const amountInput = document.getElementById("amount-input");
-
-    function getCookie(name) {
-      const match = document.cookie.match(new RegExp(name + '=([^;]+)'));
-      return match ? decodeURIComponent(match[1]) : null;
+    // Device ID setup
+    const STORAGE_KEY = 'device-id';
+    function generateDeviceId() {
+      return 'device-' + Math.random().toString(36).substring(2, 10);
     }
-
-    function setCookie(name, value) {
-      document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000`;
+    let deviceId = localStorage.getItem(STORAGE_KEY);
+    if (!deviceId) {
+      deviceId = generateDeviceId();
+      localStorage.setItem(STORAGE_KEY, deviceId);
     }
+    document.getElementById('device-id-tag').textContent = 'Your Device ID: ' + deviceId;
 
-    function clearCookie(name) {
-      document.cookie = `${name}=; path=/; max-age=0`;
-    }
+    // Balance logic
+    let slotsBalance = parseInt(localStorage.getItem('slotsBalance')) || 0;
+    let slotsCookie = 0;
+    const cookieName = `slotsbalance-${deviceId}`;
 
-    function generateBaseId() {
-      const timestamp = Date.now().toString(36);
-      const random = Math.random().toString(36).substring(2, 6);
-      return `dev-${timestamp}-${random}`;
-    }
-
-    function assignUniqueDevId() {
-      const publicList = getCookie("public-dev-ids");
-      const existingIds = publicList ? publicList.split(",") : [];
-      let baseId = generateBaseId();
-      let finalId = baseId;
-      let suffix = 1;
-
-      while (existingIds.includes(finalId)) {
-        finalId = `${baseId}-${suffix}`;
-        suffix++;
+    document.cookie.split('; ').forEach(cookie => {
+      const [name, rawValue] = cookie.split('=');
+      if (name === cookieName) {
+        const change = parseInt(decodeURIComponent(rawValue), 10);
+        if (!isNaN(change)) {
+          slotsCookie = change;
+          slotsBalance += change;
+          if (slotsBalance < 0) slotsBalance = 0;
+          localStorage.setItem('slotsBalance', slotsBalance);
+        }
+        document.cookie = `${cookieName}=; path=/; max-age=0`;
       }
+    });
 
-      existingIds.push(finalId);
-      setCookie("public-dev-ids", existingIds.join(","));
-      localStorage.setItem("dev-id", finalId);
-      return finalId;
-    }
+    document.getElementById('balance').textContent = slotsBalance;
+    document.getElementById('slots-cookie').textContent = slotsCookie;
 
-    let devId = localStorage.getItem("dev-id");
-    if (!devId) {
-      devId = assignUniqueDevId();
-    }
-    devDisplay.textContent = devId;
-
-    let balance = parseInt(localStorage.getItem("balance")) || 0;
-
-    const incoming = getCookie(devId);
-    if (incoming && !isNaN(incoming)) {
-      balance += incoming;
-      localStorage.setItem("balance", balance);
-      clearCookie(devId);
-    }
-
-    currencyDisplay.textContent = balance;
-
-    function sendMoney() {
-      const targetId = idInput.value.trim();
-      const amount = parseInt(amountInput.value.trim());
-
-      if (!targetId.startsWith("dev-") || isNaN(amount) || amount <= 0) return;
-
-      if (amount > balance) {
-        alert("Insufficient funds.");
-        return;
-      }
-
-      balance -= amount;
-      localStorage.setItem("balance", balance);
-      currencyDisplay.textContent = balance;
-
-      setCookie(targetId, amount);
-      idInput.value = "";
-      amountInput.value = "";
-    }
-
+    // Game definitions
     const gameData = {
-      "vegas-reels":        { "enabled": true,  "category": "Slots",       "label": "Vegas Reels" },
-      "texas-holdem":       { "enabled": true,  "category": "Poker",       "label": "Texas Hold'em" },
-      "roulette":           { "enabled": true,  "category": "Table Games", "label": "Roulette" },
-      "plinko-extreme":     { "enabled": true,  "category": "Plinko",      "label": "Plinko Extreme" },
-      "plinko-classic":     { "enabled": true,  "category": "Plinko",      "label": "Plinko Classic" },
-      "omaha":              { "enabled": true,  "category": "Poker",       "label": "Omaha" },
-      "mines-5x5":          { "enabled": true,  "category": "Mines",       "label": "Mines 5x5" },
-      "mines-3x3":          { "enabled": true,  "category": "Mines",       "label": "Mines 3x3" },
-      "limbo-classic":      { "enabled": true,  "category": "Limbo",       "label": "Limbo Classic" },
-      "fruit-frenzy":       { "enabled": true,  "category": "Slots",       "label": "Fruit Frenzy" },
-      "five-card-draw":     { "enabled": true,  "category": "Poker",       "label": "Five Card Draw" },
-      "dice-duel":          { "enabled": true,  "category": "Arcade",      "label": "Dice Duel" },
-      "coin-flip":          { "enabled": true,  "category": "Arcade",      "label": "Coin Flip" },
-      "classic-slots":      { "enabled": true,  "category": "Slots",       "label": "Classic Slots" },
-      "blackjack":          { "enabled": true,  "category": "Table Games", "label": "Blackjack" },
-      "baccarat":           { "enabled": true,  "category": "Table Games", "label": "Baccarat" },
-      "avia-masters":       { "enabled": true,  "category": "Risk Games",  "label": "Avia Masters" }
+      "vegas-reels":    { enabled: true,  category: "Slots",       label: "Vegas Reels",       url: "vegas-reels.html" },
+      "texas-holdem":   { enabled: true,  category: "Poker",       label: "Texas Hold'em",     url: "texas-holdem.html" },
+      "roulette":       { enabled: true,  category: "Table Games", label: "Roulette",          url: "roulette.html" },
+      "plinko-extreme": { enabled: true,  category: "Plinko",      label: "Plinko Extreme",    url: "plinko-extreme.html" },
+      "plinko-classic": { enabled: true,  category: "Plinko",      label: "Plinko Classic",    url: "plinko-classic.html" },
+      "omaha":          { enabled: true,  category: "Poker",       label: "Omaha",             url: "omaha.html" },
+      "mines-5x5":      { enabled: true,  category: "Mines",       label: "Mines 5x5",         url: "mines-5x5.html" },
+      "mines-3x3":      { enabled: true,  category: "Mines",       label: "Mines 3x3",         url: "mines-3x3.html" },
+      "limbo-classic":  { enabled: true,  category: "Limbo",       label: "Limbo Classic",     url: "limbo-classic.html" },
+      "fruit-frenzy":   { enabled: true,  category: "Slots",       label: "Fruit Frenzy",      url: "fruit-frenzy.html" },
+      "five-card-draw": { enabled: true,  category: "Poker",       label: "Five Card Draw",    url: "five-card-draw.html" },
+      "dice-duel":      { enabled: true,  category: "Arcade",      label: "Dice Duel",         url: "dice-duel.html" },
+      "coin-flip":      { enabled: true,  category: "Arcade",      label: "Coin Flip",         url: "coin-flip.html" },
+      "classic-slots":  { enabled: true,  category: "Slots",       label: "Classic Slots",     url: "classic-slots.html" },
+      "blackjack":      { enabled: true,  category: "Table Games", label: "Blackjack",         url: "blackjack.html" },
+      "baccarat":       { enabled: true,  category: "Table Games", label: "Baccarat",          url: "baccarat.html" },
+      "avia-masters":   { enabled: true,  category: "Risk Games",  label: "Avia Masters",      url: "avia-masters.html" }
     };
 
-    const sidebar = document.getElementById("sidebar");
-    const categories = {};
+    // Render games by category
+    const container = document.getElementById('games-container');
+    const enabled = Object.entries(gameData)
+      .filter(([_, g]) => g.enabled)
+      .map(([key, g]) => ({ key, ...g }));
+    const byCategory = enabled.reduce((acc, game) => {
+      if (!acc[game.category]) acc[game.category] = [];
+      acc[game.category].push(game);
+      return acc;
+    }, {});
 
-    for (const key in gameData) {
-      const game = gameData[key];
-      if (!game.enabled) continue;
-      if (!categories[game.category]) {
-        categories[game.category] = [];
-      }
-      categories[game.category].push({ key, label: game
+    Object.keys(byCategory).forEach(category => {
+      const section = document.createElement('div');
+      section.className = 'category';
+      const header = document.createElement('h2');
+      header.textContent = category;
+      section.appendChild(header);
+
+      const list = document.createElement('ul');
+      list.className = 'game-list';
+      byCategory[category].forEach(game => {
+        const li = document.createElement('li');
+        const a  = document.createElement('a');
+        a.href        = game.url;
+        a.textContent = game.label;
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+
+      section.appendChild(list);
+      container.appendChild(section);
+    });
+  </script>
+</body>
+</html>

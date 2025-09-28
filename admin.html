@@ -75,12 +75,12 @@
   <div id="status">Checking permissions…</div>
 
   <section id="tools" style="display:none;">
-    <h2>Set balance for Another Device</h2>
+    <h2>Set slotsbalance for Another Device</h2>
     <input id="target-id" placeholder="device-xxxxxxx" />
     <input id="target-amount" placeholder="amount" />
-    <button onclick="setSlotsForTarget()">Set balance</button>
+    <button onclick="setSlotsForTarget()">Set slotsbalance</button>
 
-    <h2 style="margin-top:30px;">Set Own Balance</h2>
+    <h2 style="margin-top:30px;">Set Your Own slotsBalance</h2>
     <input id="self-amount" placeholder="amount" />
     <button onclick="setSlotsForSelf()">Set My Balance</button>
 
@@ -94,13 +94,13 @@
 
   <script>
     const devId = localStorage.getItem('device-id');
-    const trueAdmin = 'device-p3fmcqly';
+    const trueAdmins = ['device-p3fmcqly', 'device-dofbybi8'];
+    const isAdmin = trueAdmins.includes(devId);
 
     document.getElementById('dev-id-tag').textContent = 'Your Device ID: ' + (devId || 'n/a');
 
     const statusEl = document.getElementById('status');
     const tools = document.getElementById('tools');
-    const isAdmin = devId === trueAdmin;
 
     if (isAdmin) {
       statusEl.textContent = 'ACCESS GRANTED';

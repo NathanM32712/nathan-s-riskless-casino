@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coin Flip</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      position: relative;
+    }
+
+    #coin {
+      width: 10px;
+      height: 100px;
+      border-radius: 50%;
+      transform-origin: center;
+      position: relative;
+      background: gray;
+      z-index: 2;
+    }
+
+    #shadow {
+      position: absolute;
+      width: 100px;
+      height: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 50%;
+      bottom: calc(50% - 10px);
+      z-index: 1;
+    }
+
+    #ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+
+    button {
+      background: #333;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #balance {
+      margin-top: 10px;
+      font-size: 20px;
+    }
+
+    #betInput {
+      font-size: 18px;
+      padding: 5px;
+      width: 100px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <button onclick="goBack()">Back</button>
+  </div>
+  <div id="shadow"></div>
+  <div id="coin"></div>
+  <input type="number" id="betInput" placeholder="Bet $" min="1" />
+  <button onclick="spinCoin()">Spin</button>
+  <div id="balance"></div>
+
+  <script>
+    let slotsBalance = 1000;
+    const coin = document.getElementById('coin');
+    const balanceDisplay = document.getElementById('balance');
+    const betInput = document.getElementById('betInput');
+    balanceDisplay.textContent = `Balance: $${slotsBalance}`;
+
+    function goBack() {
+      window.location.href = 'index.html';
+    }
+
+    function spinCoin() {
+      coin.style.width = '10px';
+      coin.style.height = '100px';
+      coin.style.background = 'gray';
+      coin.style.transform = 'rotate(0deg)';
+
+      let angle = 0;
+      let baseSpeed = 60;
+      let width = 10;
+      let height = 100;
+      let outcome = null;
+      let phase = 'spin-only';
+      let timeElapsed = 0;
+
+      const loop = setInterval(() => {
+        timeElapsed += 16;
+        const wobble = Math.sin(timeElapsed / 200) * 20;
+        const speed = baseSpeed + wobble;
+
+        angle += speed;
+        coin.style.transform = `rotate(${angle}deg)`;
+
+        if (phase === 'spin-only') {
+          if (timeElapsed >= 2500) {
+            const bet = parseInt(betInput.value) || 0;
+            outcome = Math.random() < 0.5 ? 'red' : 'green';
+            coin.style.background = outcome;
+            phase = 'inflate-spin';
+
+            if (bet > 0) {
+              slotsBalance += outcome === 'green' ? bet : -bet;
+              balanceDisplay.textContent = `Balance: $${slotsBalance}`;
+            }
+          }
+        } else if (phase === 'inflate-spin') {
+          if (width < 100) width += 0.6;
+          if (height > 100) height -= 0.6;
+          coin.style.width = `${width}px`;
+          coin.style.height = `${height}px`;
+
+          if (baseSpeed > 1) baseSpeed *= 0.98;
+          else {
+            clearInterval(loop);
+            coin.style.transform = `rotate(0deg)`;
+          }
+        }
+      }, 16);
+    }
+  </script>
+</body>
+</html>

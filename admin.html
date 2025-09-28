@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    input, button {
+      font-size: 1em;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 6px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #panel {
+      display: none;
+      margin-top: 30px;
+    }
+    .section {
+      margin-bottom: 30px;
+      border: 2px solid #0f0;
+      padding: 20px;
+      border-radius: 10px;
+      background: #1e1e1e;
+      max-width: 400px;
+      margin: auto;
+    }
+    .control {
+      background: #0f0;
+      color: #000;
+    }
+    .removeBtn {
+      background: #f00;
+      color: #fff;
+      margin: 5px;
+    }
+    #backBtn {
+      background: #f59e0b;
+      color: #000;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛠️ Admin Panel</h1>
+
+  <div id="auth">
+    <input id="passwordInput" placeholder="Enter password" />
+    <button onclick="unlock()">Unlock</button>
+    <div id="devIDDisplay"></div>
+  </div>
+
+  <div id="panel">
+    <div class="section">
+      <h2>💰 Set Your Own Balance</h2>
+      <input id="selfAmount" type="number" min="0" placeholder="Amount" />
+      <button class="control" onclick="setSelfBalance()">Set</button>
+    </div>
+
+    <div class="section">
+      <h2>📥 Send Self Money</h2>
+      <input id="selfSendAmount" type="number" min="0" placeholder="Amount to add" />
+      <button class="control" onclick="sendSelfMoney()">Send</button>
+    </div>
+
+    <div class="section">
+      <h2>📤 Send Money to Others</h2>
+      <input id="targetID" placeholder="Receiver ID" />
+      <input id="targetAmount" type="number" min="0" placeholder="Amount to send" />
+      <button class="control" onclick="sendToOther()">Send</button>
+    </div>
+
+    <div class="section" id="removeSection" style="display:none;">
+      <h2>🧨 Remove Approved Admins</h2>
+      <div id="adminList"></div>
+    </div>
+
+    <div class="section" id="playerCountSection" style="display:none;">
+      <h2>👥 Total Players</h2>
+      <div id="playerCountDisplay"></div>
+    </div>
+
+    <button id="backBtn" onclick="window.location.href='index.html'">Back to Casino</button>
+  </div>
+
+  <script>
+    const PASSWORD = "Nathan's-super-secret-sigma-password";
+    const PERMANENT_ADMINS = ['dev-epbg5mcqxzp', 'dev-zida27c5pjb'];
+
+    let deviceID = localStorage.getItem('deviceID');
+    if (!deviceID) {
+      deviceID = 'dev-' + Math.random().toString(36).substr(2);
+      localStorage.setItem('deviceID', deviceID);
+
+      let playerCount = parseInt(localStorage.getItem('playerCount')) || 0;
+      playerCount++;
+      localStorage.setItem('playerCount', playerCount);
+    }
+
+    document.getElementById('devIDDisplay').textContent = `Your Dev ID: ${deviceID}`;
+
+    const approvedAdmins = JSON.parse(localStorage.getItem('adminList') || '[]');
+
+    if (PERMANENT_ADMINS.includes(deviceID) || approvedAdmins.includes(deviceID)) {
+      showPanel();
+    }
+
+    function unlock() {
+      const input = document.getElementById('passwordInput').value.trim();
+      if (input === PASSWORD) {
+        const updatedList = [...new Set([...approvedAdmins, deviceID])];
+        localStorage.setItem('adminList', JSON.stringify(updatedList));
+        showPanel();
+        alert("✅ Access granted.");
+      } else {
+        alert("❌ Incorrect password.");
+      }
+    }
+
+    function showPanel() {
+      document.getElementById('auth').style.display = 'none';
+      document.getElementById('panel').style.display = 'block';
+
+      if (PERMANENT_ADMINS.includes(deviceID)) {
+        renderAdminList();
+        renderPlayerCount();
+      }
+    }
+
+    function renderPlayerCount() {
+      const count = localStorage.getItem('playerCount') || '0';
+      document.getElementById('playerCountDisplay').textContent = `${count} unique players`;
+      document.getElementById('playerCountSection').style.display = 'block';
+    }
+
+    function renderAdminList() {
+      const container = document.getElementById('adminList');
+      container.innerHTML = '';
+      approvedAdmins.forEach(id => {
+        const div = document.createElement('div');
+        div.textContent = id;
+        const btn = document.createElement('button');
+        btn.textContent = 'Remove';
+        btn.className = 'removeBtn';
+        btn.onclick = () => {
+          const updated = approvedAdmins.filter(x => x !== id);
+          localStorage.setItem('adminList', JSON.stringify(updated));
+          location.reload();
+        };
+        div.appendChild(btn);
+        container.appendChild(div);
+      });
+      document.getElementById('removeSection').style.display = 'block';
+    }
+
+    function setSelfBalance() {
+      const amount = parseFloat(document.getElementById('selfAmount').value);
+      if (isNaN(amount) || amount < 0) {
+        alert("❌ Invalid amount.");
+        return;
+      }
+      localStorage.setItem('slotsBalance', amount.toString());
+      alert(`✅ Your balance set to $${amount.toFixed(2)}.`);
+    }
+
+    function sendSelfMoney() {
+      const amount = parseFloat(document.getElementById('selfSendAmount').value);
+      if (isNaN(amount) || amount <= 0) {
+        alert("❌ Invalid amount.");
+        return;
+      }
+      const current = parseFloat(localStorage.getItem('slotsBalance')) || 0;
+      const updated = current + amount;
+      localStorage.setItem('slotsBalance', updated.toString());
+      alert(`✅ Added $${amount.toFixed(2)} to your balance.`);
+    }
+
+    function sendToOther() {
+      const target = document.getElementById('targetID').value.trim();
+      const amount = parseFloat(document.getElementById('targetAmount').value);
+      if (!target || isNaN(amount) || amount <= 0) {
+        alert("❌ Invalid target or amount.");
+        return;
+      }
+      const balances = JSON.parse(localStorage.getItem('publicBalances') || '{}');
+      balances[target] = (balances[target] || 0) + amount;
+      localStorage.setItem('publicBalances', JSON.stringify(balances));
+      alert(`✅ Sent $${amount.toFixed(2)} to ${target}.`);
+    }
+  </script>
+</body>
+</html>

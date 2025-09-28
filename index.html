@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Casino Launcher</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      font-family: sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background-image: url('textures/gui/title/background/panorama_4.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    #header {
+      padding: 20px;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #header-left {
+      flex: 1;
+    }
+
+    #header-right {
+      margin-left: 20px;
+    }
+
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 36px;
+      color: #0cf;
+    }
+
+    #sidebar {
+      width: 300px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px 20px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .category {
+      margin-bottom: 30px;
+    }
+
+    .category h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #0cf;
+    }
+
+    .game-button {
+      background: #222;
+      color: #0cf;
+      padding: 10px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 8px;
+      width: 100%;
+      text-align: left;
+      transition: background 0.2s;
+    }
+
+    .game-button:hover {
+      background: #444;
+    }
+
+    #id-input, #amount-input {
+      width: 40%;
+      padding: 8px;
+      margin-right: 10px;
+    }
+
+    #send-button, #admin-button {
+      padding: 8px 12px;
+      margin-top: 10px;
+    }
+
+    .layout {
+      display: flex;
+      flex: 1;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <div id="header-left">
+      <h1>🎰 Welcome to the Casino</h1>
+      <p><strong>Dev ID:</strong> <span id="dev-id"></span></p>
+      <p><strong>Balance:</strong> $<span id="currency">0</span></p>
+      <input id="id-input" placeholder="DEV-ID" />
+      <input id="amount-input" placeholder="$money$" type="number" />
+      <button id="send-button" onclick="sendMoney()">$ Send $</button>
+    </div>
+    <div id="header-right">
+      <button id="admin-button" onclick="window.location.href='admin.html'">🛠 Admin Panel</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div id="sidebar"></div>
+    <div class="main"></div>
+  </div>
+
+  <script>
+    const currencyDisplay = document.getElementById("currency");
+    const devDisplay = document.getElementById("dev-id");
+    const idInput = document.getElementById("id-input");
+    const amountInput = document.getElementById("amount-input");
+
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp(name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    function setCookie(name, value) {
+      document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000`;
+    }
+
+    function clearCookie(name) {
+      document.cookie = `${name}=; path=/; max-age=0`;
+    }
+
+    function generateBaseId() {
+      const timestamp = Date.now().toString(36);
+      const random = Math.random().toString(36).substring(2, 6);
+      return `dev-${timestamp}-${random}`;
+    }
+
+    function assignUniqueDevId() {
+      const publicList = getCookie("public-dev-ids");
+      const existingIds = publicList ? publicList.split(",") : [];
+      let baseId = generateBaseId();
+      let finalId = baseId;
+      let suffix = 1;
+
+      while (existingIds.includes(finalId)) {
+        finalId = `${baseId}-${suffix}`;
+        suffix++;
+      }
+
+      existingIds.push(finalId);
+      setCookie("public-dev-ids", existingIds.join(","));
+      localStorage.setItem("dev-id", finalId);
+      return finalId;
+    }
+
+    let devId = localStorage.getItem("dev-id");
+    if (!devId) {
+      devId = assignUniqueDevId();
+    }
+    devDisplay.textContent = devId;
+
+    let balance = parseInt(localStorage.getItem("balance")) || 0;
+
+    const incoming = getCookie(devId);
+    if (incoming && !isNaN(incoming)) {
+      balance += incoming;
+      localStorage.setItem("balance", balance);
+      clearCookie(devId);
+    }
+
+    currencyDisplay.textContent = balance;
+
+    function sendMoney() {
+      const targetId = idInput.value.trim();
+      const amount = parseInt(amountInput.value.trim());
+
+      if (!targetId.startsWith("dev-") || isNaN(amount) || amount <= 0) return;
+
+      if (amount > balance) {
+        alert("Insufficient funds.");
+        return;
+      }
+
+      balance -= amount;
+      localStorage.setItem("balance", balance);
+      currencyDisplay.textContent = balance;
+
+      setCookie(targetId, amount);
+      idInput.value = "";
+      amountInput.value = "";
+    }
+
+    const gameData = {
+  // ✅ Enabled (confirmed in image)
+  "vegas-reels":        { "enabled": true,  "category": "Slots",       "label": "Vegas Reels" },
+  "texas-holdem":       { "enabled": true,  "category": "Poker",       "label": "Texas Hold'em" },
+  "roulette":           { "enabled": true,  "category": "Table Games", "label": "Roulette" },
+  "plinko-extreme":     { "enabled": true,  "category": "Plinko",      "label": "Plinko Extreme" },
+  "plinko-classic":     { "enabled": true,  "category": "Plinko",      "label": "Plinko Classic" },
+  "omaha":              { "enabled": true,  "category": "Poker",       "label": "Omaha" },
+  "mines-5x5":          { "enabled": true,  "category": "Mines",       "label": "Mines 5x5" },
+  "mines-3x3":          { "enabled": true,  "category": "Mines",       "label": "Mines 3x3" },
+  "limbo-classic":      { "enabled": true,  "category": "Limbo",       "label": "Limbo Classic" },
+  "fruit-frenzy":       { "enabled": true,  "category": "Slots",       "label": "Fruit Frenzy" },
+  "five-card-draw":     { "enabled": true,  "category": "Poker",       "label": "Five Card Draw" },
+  "dice-duel":          { "enabled": true,  "category": "Arcade",      "label": "Dice Duel" },
+  "coin-flip":          { "enabled": true,  "category": "Arcade",      "label": "Coin Flip" },
+  "classic-slots":      { "enabled": true,  "category": "Slots",       "label": "Classic Slots" },
+  "blackjack":          { "enabled": true,  "category": "Table Games", "label": "Blackjack" },
+  "baccarat":           { "enabled": true,  "category": "Table Games", "label": "Baccarat" },
+  "avia-masters":       { "enabled": true,  "category": "Risk Games",  "label": "Avia Masters" },
+
+  // ❌ Disabled (not in image)
+  "limbo-turbo":        { "enabled": false, "category": "Limbo",       "label": "Limbo Turbo" },
+  "limbo-infinite":     { "enabled": false, "category": "Limbo",       "label": "Limbo Infinite" },
+  "video-poker":        { "enabled": false, "category": "Poker",       "label": "Video Poker" },
+  "three-card-poker":   { "enabled": false, "category": "Poker",       "label": "Three Card Poker" },
+  "risk-classic":       { "enabled": false, "category": "Risk Games",  "label": "Risk Classic" },
+  "risk-blitz":         { "enabled": false, "category": "Risk Games",  "label": "Risk Blitz" },
+  "risk-royale":        { "enabled": false, "category": "Risk Games",  "label": "Risk Royale" },
+  "risk-showdown":      { "enabled": false, "category": "Risk Games",  "label": "Risk Showdown" },
+  "mines-pro":          { "enabled": false, "category": "Mines",       "label": "Mines Pro" },
+  "plinko-chaos":       { "enabled": false, "category": "Plinko",      "label": "Plinko Chaos" },
+  "crash":              { "enabled": false, "category": "Crash",       "label": "Crash" },
+  "moonshot":           { "enabled": false, "category": "Crash",       "label": "Moonshot" },
+  "lucky-wheel":        { "enabled": false, "category": "Arcade",      "label": "Lucky Wheel" }
+};

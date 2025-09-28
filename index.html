@@ -75,20 +75,28 @@
   <div id="games-container"></div>
 
   <script>
-    // Device ID setup
+    // Device ID and balance setup
     const STORAGE_KEY = 'device-id';
+    const BALANCE_KEY = 'slotsBalance';
+
     function generateDeviceId() {
       return 'device-' + Math.random().toString(36).substring(2, 10);
     }
+
     let deviceId = localStorage.getItem(STORAGE_KEY);
     if (!deviceId) {
       deviceId = generateDeviceId();
       localStorage.setItem(STORAGE_KEY, deviceId);
     }
-    document.getElementById('device-id-tag').textContent = 'Your Device ID: ' + deviceId;
 
-    // Balance logic
-    let slotsBalance = parseInt(localStorage.getItem('slotsBalance')) || 0;
+    let slotsBalance = localStorage.getItem(BALANCE_KEY);
+    if (slotsBalance === null) {
+      localStorage.setItem(BALANCE_KEY, '10000');
+      slotsBalance = 10000;
+    } else {
+      slotsBalance = parseInt(slotsBalance) || 0;
+    }
+
     let slotsCookie = 0;
     const cookieName = `slotsbalance-${deviceId}`;
 
@@ -100,12 +108,13 @@
           slotsCookie = change;
           slotsBalance += change;
           if (slotsBalance < 0) slotsBalance = 0;
-          localStorage.setItem('slotsBalance', slotsBalance);
+          localStorage.setItem(BALANCE_KEY, slotsBalance);
         }
         document.cookie = `${cookieName}=; path=/; max-age=0`;
       }
     });
 
+    document.getElementById('device-id-tag').textContent = 'Your Device ID: ' + deviceId;
     document.getElementById('balance').textContent = slotsBalance;
     document.getElementById('slots-cookie').textContent = slotsCookie;
 

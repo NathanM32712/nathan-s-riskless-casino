@@ -59,7 +59,7 @@
       text-decoration: none;
       font-size: 20px;
     }
-    .game-list a:hover {
+    .game-list a: hover {
       text-decoration: underline;
     }
   </style>
@@ -73,7 +73,8 @@
   </div>
   <button id="admin-button" onclick="location.href='admin.html'">🛠 Admin Panel</button>
   <div id="games-container"></div>
-
+  <button id="update-button" onclick="location.href='update-logs.html'">updates</button>
+  <div id="games-container"></div>
   <script>
     // Device ID and balance setup
     const STORAGE_KEY = 'device-id';
@@ -175,3 +176,4 @@
 </body>
 
 </html>
+

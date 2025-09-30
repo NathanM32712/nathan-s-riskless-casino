@@ -67,8 +67,8 @@
 
   <script>
     function goBack() {
-      window.open("index.html", "_blank");
-      window.close();
+      const launcher = window.open("index.html", "_blank");
+      if (launcher) window.close();
     }
   </script>
 </body>

@@ -54,10 +54,11 @@
   <div id="result"></div>
 
   <script>
-    let balance = parseInt(localStorage.getItem("diceBalance"));
+    const BALANCE_KEY = "slotsBalance";
+    let balance = parseInt(localStorage.getItem(BALANCE_KEY));
     if (isNaN(balance) || balance < 0) {
       balance = 1000;
-      localStorage.setItem("diceBalance", balance);
+      localStorage.setItem(BALANCE_KEY, balance);
     }
     document.getElementById("balance").textContent = balance;
 
@@ -87,7 +88,7 @@
       }
 
       balance -= bet;
-      localStorage.setItem("diceBalance", balance);
+      localStorage.setItem(BALANCE_KEY, balance);
       document.getElementById("balance").textContent = balance;
       document.getElementById("result").textContent = "Rolling...";
 
@@ -110,14 +111,14 @@
           requestAnimationFrame(animateRoll);
         } else {
           rolling = false;
-          finishRoll(bet, pick);
+          finishRoll(bet);
         }
       }
 
       animateRoll();
     }
 
-    function finishRoll(bet, pick) {
+    function finishRoll(bet) {
       if (playerRoll > houseRoll) {
         const win = bet * 2;
         balance += win;
@@ -128,7 +129,7 @@
       } else {
         document.getElementById("result").textContent = `❌ You lose. ${houseRoll} beats ${playerRoll}.`;
       }
-      localStorage.setItem("diceBalance", balance);
+      localStorage.setItem(BALANCE_KEY, balance);
       document.getElementById("balance").textContent = balance;
     }
 

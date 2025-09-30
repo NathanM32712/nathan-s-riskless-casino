@@ -76,14 +76,21 @@
   <div id="balance"></div>
 
   <script>
-    let slotsBalance = 1000;
+    const BALANCE_KEY = 'slotsBalance';
+    let slotsBalance = parseInt(localStorage.getItem(BALANCE_KEY));
+    if (isNaN(slotsBalance)) {
+      slotsBalance = 1000;
+      localStorage.setItem(BALANCE_KEY, slotsBalance);
+    }
+
     const coin = document.getElementById('coin');
     const balanceDisplay = document.getElementById('balance');
     const betInput = document.getElementById('betInput');
     balanceDisplay.textContent = `Balance: $${slotsBalance}`;
 
     function goBack() {
-      window.location.href = 'index.html';
+      window.open("index.html", "_blank");
+      window.close();
     }
 
     function spinCoin() {
@@ -115,8 +122,10 @@
             coin.style.background = outcome;
             phase = 'inflate-spin';
 
-            if (bet > 0) {
+            if (bet > 0 && bet <= slotsBalance) {
               slotsBalance += outcome === 'green' ? bet : -bet;
+              if (slotsBalance < 0) slotsBalance = 0;
+              localStorage.setItem(BALANCE_KEY, slotsBalance);
               balanceDisplay.textContent = `Balance: $${slotsBalance}`;
             }
           }

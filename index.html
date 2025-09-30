@@ -15,17 +15,15 @@
       font-size: 48px;
       margin-bottom: 10px;
     }
-    #device-id-tag {
+    #device-id-tag, #balance-tag {
       font-size: 14px;
       color: #888;
       margin-bottom: 10px;
     }
     #balance-tag {
-      font-size: 14px;
-      color: #888;
       margin-bottom: 30px;
     }
-    #admin-button {
+    .launcher-button {
       background: #222;
       color: #0cf;
       border: none;
@@ -33,9 +31,10 @@
       padding: 8px 16px;
       font-size: 14px;
       cursor: pointer;
+      margin-right: 10px;
       margin-bottom: 30px;
     }
-    #admin-button:hover {
+    .launcher-button:hover {
       background: #444;
     }
     .category {
@@ -59,24 +58,25 @@
       text-decoration: none;
       font-size: 20px;
     }
-    .game-list a: hover {
+    .game-list a:hover {
       text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>🎰 Welcome to riskless Casino</h1>
+  <h1>🎰 Welcome to Riskless Casino</h1>
   <div id="device-id-tag">Loading Device ID...</div>
   <div id="balance-tag">
     Balance: $<span id="balance">0</span><br>
     Applied slotsbalance: $<span id="slots-cookie">0</span>
   </div>
-  <button id="admin-button" onclick="location.href='admin.html'">🛠 Admin Panel</button>
+  <button class="launcher-button" onclick="location.href='admin.html'">🛠 Admin Panel</button>
+  <button class="launcher-button" onclick="location.href='update-logs.html'">📜 Updates</button>
+  <button class="launcher-button" onclick="window.open('https://discord.gg/YUj7XYcZad', '_blank')">💬 support my friend</button>
+  <button class="launcher-button" onclick="window.open('https://discord.gg/CRvWYgbfF8', '_blank')">💬 support me</button>
   <div id="games-container"></div>
-  <button id="update-button" onclick="location.href='update-logs.html'">updates</button>
-  <div id="games-container"></div>
+
   <script>
-    // Device ID and balance setup
     const STORAGE_KEY = 'device-id';
     const BALANCE_KEY = 'slotsBalance';
 
@@ -119,7 +119,6 @@
     document.getElementById('balance').textContent = slotsBalance;
     document.getElementById('slots-cookie').textContent = slotsCookie;
 
-    // Game definitions
     const gameData = {
       "vegas-reels":    { enabled: true,  category: "Slots",       label: "Vegas Reels",       url: "vegas-reels.html" },
       "texas-holdem":   { enabled: true,  category: "Poker",       label: "Texas Hold'em",     url: "texas-holdem.html" },
@@ -137,10 +136,9 @@
       "classic-slots":  { enabled: true,  category: "Slots",       label: "Classic Slots",     url: "classic-slots.html" },
       "blackjack":      { enabled: true,  category: "Table Games", label: "Blackjack",         url: "blackjack.html" },
       "baccarat":       { enabled: true,  category: "Table Games", label: "Baccarat",          url: "baccarat.html" },
-      "avia-masters":   { enabled: false,  category: "Risk Games",  label: "Avia Masters",      url: "avia-masters.html" }
+      "avia-masters":   { enabled: false, category: "Risk Games",  label: "Avia Masters",      url: "avia-masters.html" }
     };
 
-    // Render games by category
     const container = document.getElementById('games-container');
     const enabled = Object.entries(gameData)
       .filter(([_, g]) => g.enabled)
@@ -163,7 +161,7 @@
       byCategory[category].forEach(game => {
         const li = document.createElement('li');
         const a  = document.createElement('a');
-        a.href        = game.url;
+        a.href = game.url;
         a.textContent = game.label;
         li.appendChild(a);
         list.appendChild(li);
@@ -174,7 +172,4 @@
     });
   </script>
 </body>
-
 </html>
-
-

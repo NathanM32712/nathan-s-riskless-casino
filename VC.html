@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Multiplayer Platform</title>
+  <style>
+    body { background: #111; color: #0cf; font-family: sans-serif; padding: 20px; }
+    input, button { margin: 5px; padding: 8px; }
+    img { max-width: 100px; border-radius: 50%; margin-top: 10px; }
+    .admin { color: gold; }
+    .friend { margin: 10px 0; }
+    textarea { width: 100%; height: 60px; margin-top: 5px; }
+    audio { margin-top: 10px; display: block; }
+  </style>
+</head>
+<body>
+  <h2>🔐 Create Account</h2>
+  <input id="username" placeholder="Enter username" />
+  <input type="file" id="pfpUpload" accept="image/*" />
+  <button onclick="createAccount()">Create</button>
+  <div id="preview"></div>
+  <hr />
+
+  <h3>👥 Friends</h3>
+  <input id="friendID" placeholder="Enter friend's device ID" />
+  <button onclick="addFriend()">Add Friend</button>
+  <div id="friendList"></div>
+  <hr />
+
+  <h3>💬 Direct Message</h3>
+  <input id="dmTarget" placeholder="Friend's device ID" />
+  <textarea id="dmText" placeholder="Type your message..."></textarea>
+  <button onclick="sendDM()">Send Message</button>
+  <div id="dmHistory"></div>
+  <hr />
+
+  <h3>📞 Voice Call</h3>
+  <input id="callTarget" placeholder="Friend's device ID" />
+  <button onclick="startCall()">Start Call</button>
+  <div id="callStatus">Waiting for calls...</div>
+  <button onclick="startRecording()">🎙️ Record Voice</button>
+  <button onclick="stopRecording()">⏹️ Stop & Save</button>
+  <audio id="playback" controls></audio>
+
+  <script>
+    const adminIDs = ['admin-001', 'admin-002'];
+    let deviceID = localStorage.getItem('deviceID');
+    if (!deviceID) {
+      deviceID = 'dev-' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('deviceID', deviceID);
+    }
+
+    document.getElementById('pfpUpload').addEventListener('change', function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          localStorage.setItem('pfp_' + deviceID, e.target.result);
+          document.getElementById('preview').innerHTML = `<img src="${e.target.result}" />`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function createAccount() {
+      const username = document.getElementById('username').value.trim();
+      if (!username) return;
+      const userData = { username, friends: [], messages: {}, voiceLogs: {} };
+      localStorage.setItem(deviceID, JSON.stringify(userData));
+      alert('Account created!');
+      renderFriends();
+    }
+
+    function addFriend() {
+      const friendID = document.getElementById('friendID').value.trim();
+      if (!friendID) return;
+      const userData = JSON.parse(localStorage.getItem(deviceID));
+      if (!userData.friends.includes(friendID)) {
+        userData.friends.push(friendID);
+        localStorage.setItem(deviceID, JSON.stringify(userData));
+        renderFriends();
+      }
+    }
+
+    function renderFriends() {
+      const userData = JSON.parse(localStorage.getItem(deviceID));
+      const list = document.getElementById('friendList');
+      list.innerHTML = '';
+      userData.friends.forEach(id => {
+        const pfp = localStorage.getItem('pfp_' + id) || '';
+        const imgTag = pfp ? `<img src="${pfp}" />` : '';
+        const div = document.createElement('div');
+        div.className = 'friend';
+        div.innerHTML = `
+          ${imgTag}<br />
+          <code>${id}</code>
+          <button onclick="startCallTo('${id}')">📞 Call</button>
+          <button onclick="loadDM('${id}')">💬 Chat</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function sendDM() {
+      const target = document.getElementById('dmTarget').value.trim();
+      const text = document.getElementById('dmText').value.trim();
+      if (!target || !text) return;
+      const userData = JSON.parse(localStorage.getItem(deviceID));
+      userData.messages[target] = userData.messages[target] || [];
+      userData.messages[target].push({ from: deviceID, text, time: Date.now() });
+      localStorage.setItem(deviceID, JSON.stringify(userData));
+      loadDM(target);
+    }
+
+    function loadDM(target) {
+      document.getElementById('dmTarget').value = target;
+      const userData = JSON.parse(localStorage.getItem(deviceID));
+      const history = userData.messages[target] || [];
+      const box = document.getElementById('dmHistory');
+      box.innerHTML = `<h4>Chat with ${target}</h4>`;
+      history.forEach(msg => {
+        box.innerHTML += `<div><strong>${msg.from}:</strong> ${msg.text}</div>`;
+      });
+    }
+
+    function startCall() {
+      const target = document.getElementById('callTarget').value.trim();
+      if (!target) return;
+      localStorage.setItem('currentCall', JSON.stringify({ user: deviceID, friend: target }));
+      alert(`Calling ${target}...`);
+    }
+
+    function startCallTo(id) {
+      document.getElementById('callTarget').value = id;
+      startCall();
+    }
+
+    setInterval(() => {
+      const call = JSON.parse(localStorage.getItem('currentCall') || '{}');
+      if (call.friend === deviceID) {
+        document.getElementById('callStatus').innerHTML = `🔔 Incoming call from <strong>${call.user}</strong>`;
+        alert(`📞 ${call.user} is calling you!`);
+        localStorage.removeItem('currentCall');
+      }
+    }, 2000);
+
+    let mediaRecorder, audioChunks = [];
+
+    async function startRecording() {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        document.getElementById('playback').src = url;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          const userData = JSON.parse(localStorage.getItem(deviceID));
+          userData.voiceLogs = userData.voiceLogs || {};
+          userData.voiceLogs[Date.now()] = reader.result;
+          localStorage.setItem(deviceID, JSON.stringify(userData));
+          alert('🎤 Voice message saved!');
+        };
+        reader.readAsDataURL(blob);
+      };
+
+      mediaRecorder.start();
+      document.getElementById('callStatus').innerHTML = '🎙️ Recording...';
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        document.getElementById('callStatus').innerHTML = '✅ Recording stopped.';
+      }
+    }
+
+    window.onload = () => {
+      renderFriends();
+      const userData = JSON.parse(localStorage.getItem(deviceID));
+      if (adminIDs.includes(deviceID)) {
+        document.body.insertAdjacentHTML('afterbegin', `<div class="admin">🛡️ Admin Mode Active</div>`);
+      }
+    };
+  </script>
+</body>
+</html>

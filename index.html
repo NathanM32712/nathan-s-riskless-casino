@@ -70,96 +70,102 @@
     Balance: $<span id="balance">0</span><br>
     Applied slotsbalance: $<span id="slots-cookie">0</span>
   </div>
-  <button class="launcher-button" onclick="location.href='admin.html'">🛠 Admin Panel</button>
-  <button class="launcher-button" onclick="location.href='update-logs.html'">📜 Updates</button>
-  <button class="launcher-button" onclick="window.open('https://discord.gg/YUj7XYcZad', '_blank')">💬 support my friend</button>
-  <button class="launcher-button" onclick="window.open('https://discord.gg/CRvWYgbfF8', '_blank')">💬 support me</button>
-  <button class="launcher-button" onclick="window.open('https://nathanm32712.github.io/html-Hub/', '_blank')">Game Hub</button>
+
+  <!-- Navigation Buttons -->
+  <div>
+    <button class="launcher-button" onclick="location.href='admin.html'">🛠 Admin Panel</button>
+    <button class="launcher-button" onclick="location.href='update-logs.html'">📜 Updates</button>
+    <button class="launcher-button" onclick="window.open('https://discord.gg/YUj7XYcZad', '_blank')">💬 support my friend</button>
+    <button class="launcher-button" onclick="window.open('https://discord.gg/CRvWYgbfF8', '_blank')">💬 support me</button>
+    <button class="launcher-button" onclick="window.open('https://nathanm32712.github.io/html-Hub/', '_blank')">Game Hub</button>
+  </div>
+
+  <!-- Game Categories Rendered Here -->
+  <div id="games-container"></div>
+
   <script>
     const STORAGE_KEY = 'device-id';
     const BALANCE_KEY = 'slotsBalance';
 
-    function generateDeviceId() {
-      return 'device-' + Math.random().toString(36).substring(2, 10);
-    }
-
+    // Generate or retrieve device ID
     let deviceId = localStorage.getItem(STORAGE_KEY);
     if (!deviceId) {
-      deviceId = generateDeviceId();
+      deviceId = 'device-' + Math.random().toString(36).substring(2, 10);
       localStorage.setItem(STORAGE_KEY, deviceId);
     }
 
-    let slotsBalance = localStorage.getItem(BALANCE_KEY);
-    if (slotsBalance === null) {
-      localStorage.setItem(BALANCE_KEY, '10000');
+    // Retrieve or initialize balance
+    let slotsBalance = parseInt(localStorage.getItem(BALANCE_KEY), 10);
+    if (isNaN(slotsBalance)) {
       slotsBalance = 10000;
-    } else {
-      slotsBalance = parseInt(slotsBalance) || 0;
+      localStorage.setItem(BALANCE_KEY, slotsBalance);
     }
 
+    // Apply cookie-based balance adjustment
     let slotsCookie = 0;
     const cookieName = `slotsbalance-${deviceId}`;
-
     document.cookie.split('; ').forEach(cookie => {
       const [name, rawValue] = cookie.split('=');
       if (name === cookieName) {
         const change = parseInt(decodeURIComponent(rawValue), 10);
         if (!isNaN(change)) {
           slotsCookie = change;
-          slotsBalance += change;
-          if (slotsBalance < 0) slotsBalance = 0;
+          slotsBalance = Math.max(0, slotsBalance + change);
           localStorage.setItem(BALANCE_KEY, slotsBalance);
         }
         document.cookie = `${cookieName}=; path=/; max-age=0`;
       }
     });
 
+    // Display device ID and balances
     document.getElementById('device-id-tag').textContent = 'Your Device ID: ' + deviceId;
     document.getElementById('balance').textContent = slotsBalance;
     document.getElementById('slots-cookie').textContent = slotsCookie;
 
+    // Game definitions
     const gameData = {
-      "vegas-reels":    { enabled: true,  category: "Slots",       label: "Vegas Reels",       url: "vegas-reels.html" },
-      "texas-holdem":   { enabled: true,  category: "Poker",       label: "Texas Hold'em",     url: "texas-holdem.html" },
-      "roulette":       { enabled: true,  category: "Table Games", label: "Roulette",          url: "roulette.html" },
-      "plinko-extreme": { enabled: true,  category: "Plinko",      label: "Plinko Extreme",    url: "plinko-extreme.html" },
-      "plinko-classic": { enabled: true,  category: "Plinko",      label: "Plinko Classic",    url: "plinko-classic.html" },
-      "omaha":          { enabled: true,  category: "Poker",       label: "Omaha",             url: "omaha.html" },
-      "mines-5x5":      { enabled: true,  category: "Mines",       label: "Mines 5x5",         url: "mines-5x5.html" },
-      "mines-3x3":      { enabled: true,  category: "Mines",       label: "Mines 3x3",         url: "mines-3x3.html" },
-      "limbo-classic":  { enabled: true,  category: "Limbo",       label: "Limbo Classic",     url: "limbo-classic.html" },
-      "fruit-frenzy":   { enabled: true,  category: "Slots",       label: "Fruit Frenzy",      url: "fruit-frenzy.html" },
-      "five-card-draw": { enabled: true,  category: "Poker",       label: "Five Card Draw",    url: "five-card-draw.html" },
-      "dice-duel":      { enabled: true,  category: "Arcade",      label: "Dice Duel",         url: "dice-duel.html" },
-      "coin-flip":      { enabled: true,  category: "Arcade",      label: "Coin Flip",         url: "coin-flip.html" },
-      "classic-slots":  { enabled: true,  category: "Slots",       label: "Classic Slots",     url: "classic-slots.html" },
-      "blackjack":      { enabled: true,  category: "Table Games", label: "Blackjack",         url: "blackjack.html" },
-      "baccarat":       { enabled: true,  category: "Table Games", label: "Baccarat",          url: "baccarat.html" },
-      "vc":             { enabled: true,  category: "Voice Chat",  label: "Voice Chat",        url: "VC.html" }
+      "vegas-reels":    { category: "Slots",       label: "Vegas Reels",       url: "vegas-reels.html" },
+      "texas-holdem":   { category: "Poker",       label: "Texas Hold'em",     url: "texas-holdem.html" },
+      "roulette":       { category: "Table Games", label: "Roulette",          url: "roulette.html" },
+      "plinko-extreme": { category: "Plinko",      label: "Plinko Extreme",    url: "plinko-extreme.html" },
+      "plinko-classic": { category: "Plinko",      label: "Plinko Classic",    url: "plinko-classic.html" },
+      "omaha":          { category: "Poker",       label: "Omaha",             url: "omaha.html" },
+      "mines-5x5":      { category: "Mines",       label: "Mines 5x5",         url: "mines-5x5.html" },
+      "mines-3x3":      { category: "Mines",       label: "Mines 3x3",         url: "mines-3x3.html" },
+      "limbo-classic":  { category: "Limbo",       label: "Limbo Classic",     url: "limbo-classic.html" },
+      "fruit-frenzy":   { category: "Slots",       label: "Fruit Frenzy",      url: "fruit-frenzy.html" },
+      "five-card-draw": { category: "Poker",       label: "Five Card Draw",    url: "five-card-draw.html" },
+      "dice-duel":      { category: "Arcade",      label: "Dice Duel",         url: "dice-duel.html" },
+      "coin-flip":      { category: "Arcade",      label: "Coin Flip",         url: "coin-flip.html" },
+      "classic-slots":  { category: "Slots",       label: "Classic Slots",     url: "classic-slots.html" },
+      "blackjack":      { category: "Table Games", label: "Blackjack",         url: "blackjack.html" },
+      "baccarat":       { category: "Table Games", label: "Baccarat",          url: "baccarat.html" },
+      "vc":             { category: "Voice Chat",  label: "Voice Chat",        url: "VC.html" }
     };
 
+    // Render games by category
     const container = document.getElementById('games-container');
-    const enabled = Object.entries(gameData)
-      .filter(([_, g]) => g.enabled)
-      .map(([key, g]) => ({ key, ...g }));
-    const byCategory = enabled.reduce((acc, game) => {
-      if (!acc[game.category]) acc[game.category] = [];
-      acc[game.category].push(game);
-      return acc;
-    }, {});
+    const byCategory = {};
 
-    Object.keys(byCategory).forEach(category => {
+    Object.entries(gameData).forEach(([key, game]) => {
+      if (!byCategory[game.category]) byCategory[game.category] = [];
+      byCategory[game.category].push(game);
+    });
+
+    Object.entries(byCategory).forEach(([category, games]) => {
       const section = document.createElement('div');
       section.className = 'category';
+
       const header = document.createElement('h2');
       header.textContent = category;
       section.appendChild(header);
 
       const list = document.createElement('ul');
       list.className = 'game-list';
-      byCategory[category].forEach(game => {
+
+      games.forEach(game => {
         const li = document.createElement('li');
-        const a  = document.createElement('a');
+        const a = document.createElement('a');
         a.href = game.url;
         a.textContent = game.label;
         li.appendChild(a);
@@ -172,6 +178,3 @@
   </script>
 </body>
 </html>
-
-
-

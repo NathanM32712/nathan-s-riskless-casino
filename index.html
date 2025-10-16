@@ -33,6 +33,13 @@
       cursor: pointer;
       margin-right: 10px;
       margin-bottom: 30px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .launcher-button img {
+      height: 16px;
+      margin-right: 6px;
+      vertical-align: middle;
     }
     .launcher-button:hover {
       background: #444;
@@ -75,7 +82,9 @@
   <div>
     <button class="launcher-button" onclick="location.href='admin.html'">🛠 Admin Panel</button>
     <button class="launcher-button" onclick="location.href='update-logs.html'">📜 Updates</button>
-    <button class="launcher-button" onclick="window.open('https://discord.gg/YUj7XYcZad', '_blank')">💬 support my friend</button>
+    <button class="launcher-button" onclick="window.open('https://discord.gg/YUj7XYcZad', '_blank')">
+      <img src="images/revive-tag.png" alt="Support Icon"> support my friend
+    </button>
     <button class="launcher-button" onclick="window.open('https://discord.gg/CRvWYgbfF8', '_blank')">💬 support me</button>
     <button class="launcher-button" onclick="window.open('https://nathanm32712.github.io/html-Hub/', '_blank')">Game Hub</button>
   </div>
